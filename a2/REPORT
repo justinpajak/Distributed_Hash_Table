@@ -1,0 +1,188 @@
+Justin Pajak
+CSE 40771 - Distributed Systems
+Professor Thain
+REPORT
+
+1. Detailed examples of the JSON messages used for each request and 
+   response for each kind of RPC. Be sure to include the messages 
+   representing both success and failure cases.
+
+   In my client stubs, I first formed a python dictionary from 
+   the functions parameters and the type of method. I then used
+   json.dumps() in order to convert the python dictionary into a 
+   string format that can be sent to the server.
+
+   Here are examples of valid requests for each of the 4 operations:
+
+   INSERT
+   -------
+   {
+      "method": "insert",
+      "key": "golfer",
+      "value": {"name": "justin", "attributes": {"weight": 145}}
+   }
+
+   LOOKUP
+   -------
+   {
+      "method": "lookup",
+      "key": "golfer"
+   }
+
+   REMOVE
+   -------
+   {
+      "method": "remove",
+      "key": "golfer"
+   }
+
+   SCAN
+   -------
+   {
+      "method: "scan",
+      "regex": "ol"
+   }
+
+   Prior to sending these requests, the client sends the length of the 
+   request to the server so that server knows how big of a string to 
+   expect to receive.
+
+   These requests are then sent to the server which does several checks to 
+   see if the request is valid.  The server first makes sure that the client
+   sent a valid request by using json.loads() to convert the message to JSON 
+   and then checking if the request has a "method" key.  If this check fails,
+   then the server will send back an "Invalid Request" response:
+
+   {"result": "invalid"}
+
+   After this check, the server will determine what type of method the client
+   is trying to invoke.  In the case that the method provided if not INSERT,
+   LOOKUP, REMOVE, or SCAN, the server sends a "Invalid Request" response.
+
+   ------------------------------------------------------------------------
+
+   In the case of an INSERT request, if the request does not have a "key"
+   or "value" entry or the "key" entry is not a string, the server will
+   send back an "Invalid Request" response.  If the request is completed 
+   successfully, the server will send back a "success" response:
+
+   {"result": "success", "method": "Insert"}
+
+   ------------------------------------------------------------------------
+
+   In the case of a LOOKUP and REMOVE requests, if the request does not have a 
+   "key" entry or the "key" entry is not a string, the server will send back
+   an "Invalid Request" response.  If the key does not exist in the table,
+   a KeyError will be caught by the server and will send back a "failure"
+   response:
+
+   {"result": "failure"}
+   
+   If the request is completed successfully, the server will send back a 
+   "success" response:
+
+   {"result": "success", "method": "Lookup", "value": value}
+   {"result": "success", "method": "Remove", "value": value}
+
+   ------------------------------------------------------------------------
+
+   In the case of a SCAN request, if the request does not have a "regex"
+   entry or the "regex" entry is not valid, the server will send back an 
+   "Invalid Request" response.
+
+   If the request is completed successfully, the server will send back a 
+   "success" response:
+
+   {"result": "success", "method": "Scan", "pairs": results}
+
+   ------------------------------------------------------------------------
+
+   Examples of invalid requests:
+
+      ksjlkfsjdfksdf                         -> {"result": "invalid"}
+      {"key": "name", "value": "justin"}     -> {"result": "invalid"}
+      {"method": "insert", "value": "x"}     -> {"result": "invalid"}
+      {"method": "scan", "regex": "a["}      -> {"result": "invalid"}
+      {"method": "scan"}                     -> {"result": "invalid"}
+ 
+
+2. A summary of the throughput (ops/time) and latency (time/op) observed 
+   for each kind of RPC, where the client and server are running on 
+   different student machines.
+
+   For my tests, I ran the HashTableServer on student10.cse.nd.edu and ran
+   the TestPerf script that uses HashTableClient on student04.cse.nd.edu.
+
+   In order to test the peformance of the 4 operations, I ran each operation
+   100 times.  In the case of INSERT, I inserted 100 different key, value 
+   pairs.  For LOOKUP, I looked up each key I inserted during the insert test.
+   For SCAN, I scanned the table for a different regex for each test.
+   Finally, for REMOVE, I removed the 100 key, value pairs in the table.
+
+   Here are the throughout and latency results for the 4 operations:
+   
+   INSERT
+   -------
+   Throughput: 12.63759 ops/sec
+   Latency: 0.07913 sec/op
+
+   LOOKUP
+   -------
+   Throughput: 12.53041 ops/sec
+   Latency: 0.07981 sec/op
+
+   SCAN
+   -------
+   Throughput: 13.07212 ops/sec
+   Latency: 0.07650 sec/op
+
+   REMOVE
+   -------
+   Throughput: 12.50696 ops/sec
+   Latency: 0.07996 sec/op
+
+
+3. A discussion of the significance of your results, noting how they 
+   compare to the results obtained in assignment #1.
+
+   The latency for all of these 4 operations in the HashTableClient 
+   is quite significant (~0.08 sec/op).  The throughput is also very
+   low with large overhead in the case that a user wants to perform
+   a lot of operations (~12.5 ops/sec).  The cause of such large 
+   overhead just to insert, lookup, remove, or scan an element in a 
+   hash table is because this sequence of events must happen:
+
+      - Client marshalls request into message and sends to server
+      - Server unmarshalls message and processes request
+      - Server sends back result
+      - Client receives results and is successful or raises exception
+
+   This sequence requires a lot of interprocess communication and
+   the dictionary operations are external to the HashTableClient
+   process. 
+
+   In comparison to the time required to insert an item into a Python
+   dictionary internal to a process recorded in A1, the time to insert
+   in this scheme is much larger:
+
+      - Insert an item in dictionary (internal to process): 142.193 ns/op
+      - Insert an item in dictionary (external to process): 0.07913 sec/op
+
+   These results make sense based on previous testing done in A1. For example,
+   the time required to make a TCP connection to a well-known internet service
+   and close it is 10743718.688 ns/op = 0.0107 sec/op.  The time required for the
+   4 hash table operations are of the same magnitude of this overhead but are longer
+   because there is data transfer and extra processing such as marshalling the data
+   occurring.
+
+   In addition, in A1, the time required to open a file containing a large
+   JSON document and parse it into memory as 86381.319 ns/op.  In this case,
+   the socket is acting like the file and after reading the JSON data, the 
+   data is parsed into memory.  Therefore, this additional overhead is 
+   a component of the latency time recorded for any given HashTable RPC
+   operation that is valid.
+
+   In the case that a lot more values were inserted into the hash table,
+   we would expect the SCAN operation to have a much greater overhead
+   then the other operations because it has to check the regular 
+   expression against all keys in the hash table.

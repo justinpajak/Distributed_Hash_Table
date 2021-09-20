@@ -1,0 +1,140 @@
+Justin Pajak
+CSE 40771 - Distributed Systems
+Prof. Douglas Thain
+Wednesday, September 1, 2021
+------------------------------------
+
+
+RESULTS:
+
+Test 1 - "Make a trivial function call"
+
+Total elapsed time:  2.0 s
+Number of ops: 		 11775490
+Average time per op: 169.844 ns
+Fastest single op:   156 ns
+Slowest single op:   29785 ns
+
+-------------------------------------
+
+Test 2 - "Create/delete a file in your home directory"
+
+Total elapsed time:  2.002 s
+Number of ops: 		 405
+Average time per op: 4944204.928 ns
+Fastest single op:   3043879 ns
+Slowest single op:   5873637 ns
+
+-------------------------------------
+
+Test 3 - "Create/delete a file in /tmp"
+
+Total elapsed time:  2.0 s
+Number of ops: 		 73066
+Average time per op: 27372.637 ns
+Fastest single op:   24696 ns
+Slowest single op:   807582 ns
+
+-------------------------------------
+
+Test 4 - "Get the current wall clock time"
+
+Total elapsed time:  2.0 s
+Number of ops: 		 9072610
+Average time per op: 220.444 ns
+Fastest single op:   208 ns
+Slowest single op:   49306 ns
+
+-------------------------------------
+
+Test 5 - "Insert an item into a Python dictionary"
+ 
+Total elapsed time:  2.0 s
+Number of ops: 		 14065428
+Average time per op: 142.193 ns
+Fastest single op:   129 ns
+Slowest single op:   29756 ns
+
+-------------------------------------
+
+Test 6 - "Make a TCP connection to a well-known internet service and close it."
+
+Total elapsed time:  2.009 s
+Number of ops: 		 187
+Average time per op: 10743718.668 ns
+Fastest single op:   10374593 ns
+Slowest single op:   12432578 ns
+
+-------------------------------------
+
+Test 7 - "Make an HTTP connection to a well-known website, read back the HTML, and then close it."
+
+Total elapsed time:  2.205 s
+Number of ops:       8
+Average time per op: 275593885.125 ns
+Fastest single op:   210741512 ns
+Slowest single op:   344586852 ns
+
+-------------------------------------
+
+Test 8 - "Open a file containing a large JSON document, and parse it into memory."
+
+Total elapsed time:  2.0 s
+Number of ops: 		 23154
+Average time per op: 86381.319 ns
+Fastest single op:   81934 ns
+Slowest single op:   1377511 ns
+
+-------------------------------------
+
+Test 9 - "Use scandir to iterate over all the items in your home directory and stat each one to measure its size."
+
+Total elapsed time:  2.0 s
+Number of ops: 		 2420
+Average time per op: 826508.14 ns
+Fastest single op:   441984 ns
+Slowest single op:   5491055 ns
+
+-------------------------------------
+
+Test 10 - "Run ls -l as a subprocess to accomplish the same thing."
+
+Total elapsed time:  2.0 s
+Number of ops: 		 673
+Average time per op: 2972426.098 ns
+Fastest single op:   2444727 ns
+Slowest single op:   5768273 ns
+
+-------------------------------------
+
+ANALYSIS:
+
+Fastest Average Time per Operation: Test 5 - Insert an item into a Python dictionary
+142.193 ns / op
+
+The reason why this test had the fastest average time per operation is because it is 
+a simple operation that requires no I/O or large data transfer. Therefore, no system 
+calls had to be invoked.  A trivial function call and getting the current wall clock
+time also have a very low average time per operation for the same reaons.
+
+
+
+Slowest Average Time per Operation: Test 7 - Make an HTTP connection, read HTML, and close
+275593885.100 ns / op
+
+The reason this test had the slowest average time per operation is because making an HTTP
+request requires creating a socket, connecting to a server at a given port, and transerfing 
+the HTML data over the internet. This took more time than making a TCP connection because 
+the TCP test simply made a connection without transfering any data.
+
+
+
+Broadest Range of Performance: Test 7 - Make an HTTP connection, read HTML, and close
+Range: 133845340 ns
+
+This test most likely had the broadest range of performance because I made a request 
+to www.google.com and google's servers are processing a varible number of requests at
+any given time.  If google is processing requests from a relatively low number of users,
+the overhead of making the HTTP connection would be less.
+
+
