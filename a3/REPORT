@@ -1,0 +1,156 @@
+Justin Pajak
+Distributed Systems - CSE 40771
+Professor Thain
+REPORT
+
+1. An example of the format of your checkpoint file and transaction log. Shows the contents
+   of each after you have performed a few inserts and removes.
+
+	I formatted my table.ckpt to be a series of key value pairs stored in JSON format.
+	For example, table.ckpt could look like:
+
+	{"key": "name", "value": "justin"}
+	{"key": "age", "value": 20}
+
+	I formatted my table.txn to be a series of operations in JSON format in the same
+	format as what the HashTableClient sends the server when a user invokes one of the 
+	the four client stubs.
+	For example, table.txn could look like:
+
+	{"method": "insert", "key": "golfer", "value": "justin"}
+	{"method": "remove", "key": "golfer"}
+
+	----------------------------------------------------------------------------
+
+	For this following example, I made the transaction log compact when it has more
+	than 3 entries in order to show the functionality of my program after a few
+	inserts and removed have been performed:
+
+	After running the following commands on the client-side:
+
+	client.insert("name", "justin")
+	client.insert("age", 20)
+	client.insert("gender", "male")
+
+	table.ckpt is still empty and table.txn looks like this:
+
+	{"method": "insert", "key": "name", "value": "justin"}
+	{"method": "insert", "key": "age", "value": 20}
+	{"method": "insert", "key": "gender", "value": "male}
+
+	Now the client decides to remove the pair with key = "name":
+
+	client.remove("name")
+
+	Since this is the fourth transaction, the transaction will first be added to the 
+	transaction log, then the entry is removed from the table, and then the log is 
+	compacted.  This results in the transaction log being the deleted and the new 
+	checkpoint being atomically updated through renaming to be this:
+
+	{"key": "age", "value": 20}
+	{"key": "gender", "value": "male"}
+
+
+2. A summary of the throughput (ops/time) and latency (time/op) observed for each kind of 
+   RPC from TestPerf.
+
+	For my tests, I ran the HashTableServer on student10.cse.nd.edu and ran the TestPerf
+	script that uses HashTableClient on student04.cse.nd.edu.
+
+	To test the performance of the 4 operations, I ran each operation 3000 times. In the
+	case of INSERT, I inserted 3000 different key, value pairs.  For LOOKUP, I looked up
+	each key I inserted during the insert test.  For SCAN, I scanned the table for a
+	different regex for each test.  Finally, for REMOVE, I removed the 3000 key, value
+	pairs in the table.
+
+	Here are the throughput and latency for the 4 operations:
+
+	INSERT
+	-----------
+	Throughput:     550.02716  ops / sec
+	Avg. Latency:   0.00182    sec / op
+
+	LOOKUP
+	-----------
+	Throughput:     4397.01673 ops / sec
+	Avg. Latency:   0.00023    sec / op
+
+	SCAN
+	-----------
+	Throughput:     451.32548  ops / sec
+	Avg. Latency:   0.00222    sec / op
+
+	REMOVE
+	-----------
+	Throughput:     526.36693  ops / sec
+	Avg. Latency:   0.00190    sec / op
+
+
+3. A summary of the fastest and slowest operations observed in TestOutliers
+
+	For these tests, I ran the HashTableServer on student10.cse.nd.edu and ran the 
+	TestOutliers script that uses HashTableClient on student04.cse.nd.edu.
+
+	I performed 549 pairs of the INSERT and REMOVE operations each with a unique
+	key, value pair. Since the server compacts when the transaction log has more
+	than 100 entries, this test will cause the server to compact the transaction
+	log 5 times.  Therefore, the slowest individial operation for the INSERT
+	and REMOVE operations were caused by the need for the server to compact the 
+	transaction log.
+
+	Fastest INSERT: 1,052,759  ns
+	Slowest INSERT: 10,476,808 ns
+
+	Fastest REMOVE: 1,101,987  ns
+	Slowest REMOVE: 12,303,283 ns
+
+4. A discussion of the significance of your results, noting how they compare to the results
+   of the prior assignment.
+
+	In order to compare these results to those of the HashTableServer without persistance,
+	here is the throughput and latency data for the old HashTableServer:
+
+	INSERT
+	-----------
+	Throughput: 4194.25227 ops / sec
+	Avg. Latency: 0.00024 sec / op
+
+	LOOKUP
+	-----------
+	Throughput: 3999.09485 ops / sec
+	Avg. Latency: 0.00025 sec / op
+
+	SCAN
+	-----------
+	Throughput: 455.97409 ops / sec
+	Avg. Latency: 0.00219 sec / op
+
+	REMOVE
+	-----------
+	Throughput: 4061.67803 ops / sec
+	Avg. Latency: 0.00025 sec / op
+
+	In the new HashTableServer model that includes making the state of the hash table
+	persistent, there is new overhead introduced in the form of writing the transaction
+	log, checkpoint, and compacting.  Since the INSERT and REMOVE operations are the 
+	only two operations that affect the hash table directly, they suffered in performance
+	in terms of both latency and throughput because when the transaction log reached more
+	than 100 entries, the server had to compact the log by creating a new checkpoint that
+	represents the current state of the table and then renaming it in order to update the 
+	checkpoint file atomically.
+
+	Throughput:
+	------------
+	INSERT: 4194.25227 ops / sec -> 550.02716 ops/sec 
+
+	REMOVE: 4061.67803 ops / sec -> 4061.67803 ops / sec
+
+	Latency:
+	------------
+	INSERT: 0.00024 sec / op     -> 0.00190 sec / op
+
+	REMOVE: 0.00025 sec / op     -> 0.00190 sec / op
+
+	The LOOKUP and SCAN operations had almost identical throughput and latency data
+	for the two server models because those operations had no affect on the state of the
+	hash table.

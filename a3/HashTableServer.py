@@ -19,9 +19,11 @@ class HashTableServer:
         self.host = host
         self.port = port
         self.table = HashTable()
+        self.txn_size = 0
     
     def listen(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.txn = open("table.txn", "a")
         self.s.bind((self.host, self.port))
         if self.port == 0:
             self.port = self.s.getsockname()[1]
@@ -85,6 +87,13 @@ class HashTableServer:
                             # "key" entry is not a string
                             self.send_failure_or_invalid("invalid")
                             break
+                        
+                        # First add entry to transaction log before inserting into table
+                        self.txn.write(message)
+                        self.txn.write("\n")
+                        self.txn.flush()
+                        os.fsync(self.txn.fileno())
+                        self.txn_size += 1
 
                         # Complete INSERT operation
                         self.table.insert(key, value)
@@ -137,13 +146,20 @@ class HashTableServer:
                             # "key" entry is not a string
                             self.send_failure_or_invalid("invalid")
                             break
+
+                        # First add entry to transaction log before inserting into table
+                        if key in self.table.table:
+                            self.txn.write(message)
+                            self.txn.write("\n")
+                            self.txn.flush()
+                            os.fsync(self.txn.fileno())
+                            self.txn_size += 1
                         
-                        # Complete REMOVE operation
-                        value = {}
-                        try:
+                            # Complete REMOVE operation
+                            value = {}
                             value = self.table.remove(key)
-                        except:
-                            # Operation failed during remove
+                        else:
+                            # Key not in table - KEYERROR
                             self.send_failure_or_invalid("failure")
                             break
                         
@@ -176,8 +192,51 @@ class HashTableServer:
                     else:
                         self.send_failure_or_invalid("invalid")
 
+                    # Check if transaction log has more than 100 entries
+                    # if yes, compact.
+                    if self.txn_size > 100:
+                        with open("temp.ckpt", "w") as temp:
+                            for key in self.table.table:
+                                op = {"key": key, "value": self.table.table[key]}
+                                temp.write(json.dumps(op))
+                                temp.write("\n")
+                            temp.flush()
+                            os.fsync(temp.fileno())
+                        # Atomically update the checkpoint file
+                        os.rename("temp.ckpt", "table.ckpt")
+                        self.txn.close()
+                        os.remove("table.txn")
+                        self.txn = open("table.txn", "a")
+                        self.txn_size = 0
             except:
-                pass
+                passx
+
+
+    def restore(self):
+        # Read checkpoint file into memory in hash table
+        if os.path.exists("table.ckpt"):
+            with open("table.ckpt") as cp:
+                state = cp.readlines()
+                for op in state:
+                    op = json.loads(op.strip())
+                    self.table.insert(op["key"], op["value"])
+        else:
+            open("table.ckpt", "w")
+            
+        # Play back all entries in transaction log
+        if os.path.exists("table.txn"):
+            with open("table.txn") as txn:
+                ops = txn.readlines()
+                self.txn_size = len(ops)
+                for op in ops:
+                    op = json.loads(op.strip())
+                    if op["method"] == "insert":
+                        self.table.insert(op["key"], op["value"])
+                    elif op["method"] == "remove":
+                        self.table.remove(op["key"])
+        else:
+            open("table.txn", "w")
+            
 
 def run_server():
 
@@ -192,6 +251,11 @@ def run_server():
     # Create HashTableServer Object
     host = socket.gethostbyname(socket.gethostname())
     server = HashTableServer(host, port)
+
+    # Restore state of hash table from table.ckpt and table.txn
+    server.restore()
+
+    # Listen on port
     server.listen()
 
     # Accept client connections
