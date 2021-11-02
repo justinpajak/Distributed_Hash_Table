@@ -1,0 +1,68 @@
+Justin Pajak
+Distributed Systems - CSE 40771
+Professor Thain
+REPORT
+
+1. The raw data from your throughput measurements, all laid out in a nice tabular form.
+
+   Throughput (sum across clients) (ops / sec)
+   ---------------------
+   # clients |    INSERT     |    LOOKUP    |     SCAN     |    REMOVE    |
+        1    |   474.1919    |   5200.6765  |   430.8829   |   469.1713   |
+        2    |   657.4474    |   9029.2591  |   544.5948   |   1077.3357  |
+        3    |   756.3154    |   1926.4418  |   771.8307   |   11123.2948 |
+        4    |   801.0723    |   1755.5653  |   1188.0641  |   13840.5735 |
+        5    |   750.8045    |   2248.0713  |   5269.3512  |   20581.4890 |
+        6    |   723.2674    |   2513.6967  |   4601.22946 |   19275.5623 |
+        7    |   700.2147    |   2864.08014 |   6810.01117 |   22859.6762 |
+
+   Latency (average across clients) (sec / op)
+   ---------------------
+   # clients |    INSERT     |    LOOKUP    |     SCAN     |    REMOVE    |
+        1    |   0.00211     |   0.00019    |   0.00232    |    0.00213   |
+        2    |   0.00304     |   0.00022    |   0.00368    |    0.00186   |
+        3    |   0.00413     |   0.00158    |   0.00403    |    0.00111   |
+        4    |   0.00512     |   0.00265    |   0.00339    |    0.00152   |
+        5    |   0.00674     |   0.00336    |   0.00330    |    0.00070   |
+        6    |   0.00836     |   0.00385    |   0.00523    |    0.00116   |
+        7    |   0.01006     |   0.00422    |   0.00608    |    0.00134   |
+   
+
+2. Consider your performance data closely, and explain what it tells you about the system
+   as a whole.  Take your time to look at the data from multiple perspectives: consider
+   individual clients, and the sum of simulataneous clients; consider differences between
+   operation types; consider what happens as the number of clients increase.
+
+     In regards to an individual client connecting, the client can experience high latency when 
+     several clients are connected to the Hash Table server at the same time.  This is because 
+     the server is interleaving the requests from all the clients.  By the server using select 
+     to determine which client sockets are ready to read from, the server does not have to wait 
+     for a client to process the response it sent it before processing another request from that 
+     same client.  In the meantime, the server can process a request from a different client socket 
+     that is ready to be read.  As a result, as the number of clients increases, the throughput 
+     increases as well. The throughput for the system is calculated as the sum of the throughputs
+     from each client running simultaneously.
+
+     However, as the number of clients increases, there is a point where the throughput begins to 
+     level out and then decrease.  In general, the latency increases linearly as the number of clients
+     increases and does not exhibit the same behavior as throughput.  However, as the number of clients
+     increases significantly, latency should increase more exponentially.  
+
+     For all these trials, the same program was ran, "TestPerf.py".  As a result, there is strange
+     behavior in the throughput and latency data for a few of the operations.  
+     
+     In the case of the INSERT and LOOKUP operations, they both exhibit a consistent pattern in both 
+     latency and throughput data sets.  The throughput increases as the number of clients increases to 
+     a certain point where the the throughput levels out and then decreases.  The latency increases at
+     a linear rate as the number of clients increases.  
+     
+     For the SCAN and REMOVE operations, the throughput data increases significantly, way beyond the other 
+     two operations.  This is because in my TestPerf.py script, I tested the operations in this order: INSERT,
+     LOOKUP, SCAN, REMOVE.  Therefore, since the SCAN and REMOVE operations are being processed last in all the 
+     clients simultaneously, some clients are finishing their job before the others.  This causes the finished
+     clients to be removed from the server's dictionary of client sockets and allows the server to complete the 
+     remaining client's requests at a faster rate.  This is why the final few clients that finish running the 
+     TestPerf.py program exhibit a very high throughput for the SCAN and REMOVE operations.
+
+     Overall, this system experiences an almost linear increase in latency and an increase, level out, and then 
+     decrease behavior in throughput as the number of clients increases.

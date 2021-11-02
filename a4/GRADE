@@ -1,0 +1,22 @@
+Assignment 4 - Concurrency and Discovery
+
+Basic Operation (40 points)
+---------------------------
+Basic ops are ok.
+Btw, it is actually expected to use the same argument format of TestPerf.py for TestBasics.py, instead of simply removing it.
+
+Server Code Details (20 points)
+-------------------------------
+HashTableServer.py looks ok.
+
+Client Code Details (10 points)
+-------------------------------
+HashTableClient.py looks ok.
+
+Report (30 points)
+------------------
+-2 Missing indidvidual data for multiple clients.
+-3 Missing discussion: the *sum* of insert throughput should not increase dramatically with the number of clients, because the bottleneck is the handling of the log.
+-3 Missing discussion: the *sum* of lookup performance should increase with the number of clients, because the server is now able to overlap requests/responses between clients.
+
+Total: 92
