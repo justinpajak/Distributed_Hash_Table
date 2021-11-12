@@ -1,0 +1,146 @@
+Justin Pajak
+Distributed Systems - CSE 40771
+Professor Thain
+REPORT
+
+1. The raw data from your throughput measurements, all laid out in a nice tabular form.
+
+    Throughput (ops / sec)
+
+    CONFIGURATION: N = 1, K = 1 (server hosted on student11)
+                   |    INSERT    |     LOOKUP     |     SCAN     |    REMOVE    |
+    # clients = 1  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   479.3904   |   2375.7395    |   236.6582   |   503.2070   |
+    SUM:           |   479.3904   |   2375.7395    |   263.6582   |   503.2070   |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 2  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   316.8560   |   2501.3198    |   132.1057   |   373.2791   |
+    client-2:      |   316.7915   |   2100.8140    |   131.7882   |   382.0969   |
+    SUM:           |   633.6475   |   4602.1338    |   263.8939   |   755.3760   |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 3  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   211.4073   |   2766.6608    |   82.8444    |   118.1765   |
+    client-2:      |   211.3507   |   2568.1466    |   78.7537    |   126.3890   |
+    client-3:      |   211.3419   |   2286.2492    |   77.3976    |   128.2725   |
+    SUM:           |   634.0999   |   7621.0566    |   283.9957   |   372.838    |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 4  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   162.7500   |   2762.1751    |   38.6262    |   221.4284   |
+    client-2:      |   162.7350   |   2722.3595    |   38.0267    |   244.0731   |
+    client-3:      |   162.7208   |   2443.0590    |   37.5737    |   259.5120   |
+    client-4:      |   162.7053   |   1927.6487    |   37.6096    |   267.1933   |
+    SUM:           |   650.9111   |   9855.2423    |   151.8362   |   992.2068   |
+    ---------------|--------------|----------------|--------------|--------------|
+
+
+    CONFIGURATION: N = 3, K = 2 (servers hosted on student11, 12, 13)
+                   |    INSERT    |     LOOKUP     |     SCAN     |    REMOVE    |
+    # clients = 1  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   212.4715   |   2820.1792    |   130.4852   |   222.4349   |
+    SUM:           |   212.4715   |   2820.1792    |   130.4852   |   222.4349   |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 2  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   205.7080   |   2894.2495    |   125.1574   |   349.1926   |
+    client-2:      |   205.2259   |   2944.9460    |   119.9650   |   312.0685   |
+    SUM:           |   410.9339   |   5839.1955    |   245.1224   |   661.2611   |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 3  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   177.5676   |   2728.7503    |   124.8655   |   333.009    |
+    client-2:      |   176.6413   |   2900.4874    |   124.7386   |   331.517    |
+    client-3:      |   176.0035   |   2979.5072    |   124.8337   |   331.564    |
+    SUM:           |   530.2124   |   8608.7449    |   374.4378   |   996.090    |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 4  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   150.5127   |   2581.4109    |   116.7748   |   155.4304   |
+    client-2:      |   149.4474   |   2887.2975    |   116.6853   |   156.8937   |
+    client-3:      |   149.3901   |   2862.0384    |   116.5665   |   155.7015   |
+    client-4:      |   149.2234   |   2894.0778    |   116.2726   |   155.9366   |
+    SUM:           |   598.5736   |   11224.8246   |   466.3024   |   623.9622   |
+    ---------------|--------------|----------------|--------------|--------------|
+
+
+    CONFIGURATION: N = 5, K = 3 (servers hosted on student00, 04, 11, 12, 13)
+                   |    INSERT    |     LOOKUP     |     SCAN     |    REMOVE    |
+    # clients = 1  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   131.7888   |   1999.7717    |   67.9329    |   146.6274   |
+    SUM:           |   131.7888   |   1999.7717    |   67.9329    |   146.6274   |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 2  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   141.4076   |   2167.0434    |   67.3015    |   212.2179   |
+    client-2:      |   141.3321   |   2129.8108    |   67.3154    |   212.2600   | 
+    SUM:           |   282.7379   |   4296.8542    |   134.616    |   424.4779   |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 3  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   136.2105   |   2218.2159    |   66.6651    |   331.1232   |
+    client-2:      |   135.2615   |   2321.1319    |   66.7185    |   334.1528   |
+    client-3:      |   135.1104   |   2312.7173    |   66.6714    |   329.5783   |
+    SUM:           |   406.5824   |   6852.0651    |   200.055    |   994.8543   |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 4  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   158.6241   |   2302.3981    |   58.4551    |   340.8100   |
+    client-2:      |   157.8791   |   2412.0726    |   58.3626    |   331.9641   | 
+    client-3:      |   157.4233   |   2394.6556    |   58.1726    |   337.0740   |
+    client-4:      |   157.3035   |   2275.9033    |   58.2609    |   331.2019   |
+    SUM:           |   631.2299   |   9385.0296    |   233.2512   |   1341.050   |
+    ---------------|--------------|----------------|--------------|--------------|
+    # clients = 5  |              |                |              |              |
+    ---------------|--------------|----------------|--------------|--------------|
+    client-1:      |   122.2047   |   1843.2104    |   51.0638    |   401.8747   |
+    client-2:      |   121.6112   |   1990.9809    |   51.0480    |   407.0506   | 
+    client-3:      |   121.0284   |   1957.7207    |   50.9278    |   412.2899   |
+    client-4:      |   121.0229   |   2106.3634    |   50.9895    |   408.2582   |
+    client-5:      |   117.2017   |   1936.5831    |   51.1147    |   446.1263   |
+    SUM:           |   603.0689   |   9834.8585    |   255.1438   |   2075.599   |
+    ---------------|--------------|----------------|--------------|--------------|
+
+
+2. Consider your performance data closely, and explain what it tells you about the system as a whole.
+   Take your time to look at the data from multiple perspectives: consider individual clients, and the
+   sum of simulataneous clients; consider differences between operation types; consider what happens 
+   as the number of clients increase; consider what happens as N and K change.
+       
+     By replicating the HashTableServer and storing fractions of the hash table on each, the system is able
+     to increase its capacity, throughput, and the number of clients it can serve in parallel.  
+     However, in order to make the system tolerant to failures, the data is copied across k servers 
+     (1 <= K <= N) in the case that one server crashes, the data can still be acessed.  However, this 
+     replication of data decreases throughput because everytime a client does a write operation, 
+     it must communicate with K servers. 
+
+     In the case of individual clients, the throughput for write operations decreases as K increases.  This
+     is because the client will now have to contact K servers to perform the write.  K does not affect the read 
+     operation LOOKUP when no server crashes.  This is because the client will get the value back
+     after contacting the first server that stores the specified key.  For read operations such as SCAN, 
+     throughput decreases for each individual client as N increases.  This is because the scan operation 
+     uses a regex on each key in the hashtable which is spread across N servers.
+
+     The sum of throughputs for simultaneous clients for read operations such as LOOKUP increases as the 
+     number of clients increases because the server is now able to overlap requests/responses between clients.
+     The sum for LOOKUP should also increase as the number of replicated servers (N) increases. This is because as the 
+     number of replicated servers increases, the more clients the system can handle at a time in parallel.  
+     This behavior is not seeen in my data because I was running several instances of the same client program (TestPerf).  
+     In this program, TestPerf inserts and lookups the same data for each instance of it running.  As a result, 
+     the same server is being asked to fulfill the request. In the case that different clients were running and performing 
+     operations on different data, this behavior would be seen.  The sum of simultaneous client's throughputs for INSERT
+     does not increase dramatically as the number of clients increases but levels off because of the bottleneck of handling 
+     the log.
+
+     The data for the REMOVE opeation should be similar in behavior to that of the INSERT operation since they are both
+     "write" actions.  However, the data for REMOVE sometimes shows strange behavior.  Prof. Thain and I talked about 
+     this and we believe it is a result of REMOVE being the last operation I test.
+
+     In general, as N and K change, the capacity, read latency, and write latency of the system changes.  
+     For example, the capacity of the system is N/K. The latency of the system depends on whether or not 
+     a server crashes and the type of operation.  Considerations for the differences between operation types
+     and when the number of clients increases is descibed above.
